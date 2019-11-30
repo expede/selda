@@ -1,21 +1,23 @@
-{-# LANGUAGE OverloadedStrings, GADTs, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | Functionality for upgrading a table from one schema to another.
 module Database.Selda.Migrations
   ( Migration (..)
   , migrate, migrateM, migrateAll, autoMigrate
   ) where
-import Control.Monad (void, when)
-import Control.Monad.Catch
-import Database.Selda hiding (from)
-import Database.Selda.Frontend
-  ( OnError (..)
-  , createTableWithoutIndexes, createTableIndexes
-  )
-import Database.Selda.Backend.Internal
-import Database.Selda.Table.Type (tableName)
-import Database.Selda.Table.Validation (ValidationError (..))
-import Database.Selda.Types (mkTableName, fromTableName, rawTableName)
-import Database.Selda.Validation
+import           Control.Monad                   (void, when)
+import           Control.Monad.Catch
+import           Database.Selda                  hiding (from)
+import           Database.Selda.Backend.Internal
+import           Database.Selda.Frontend         (OnError (..),
+                                                  createTableIndexes,
+                                                  createTableWithoutIndexes)
+import           Database.Selda.Table.Type       (tableName)
+import           Database.Selda.Table.Validation (ValidationError (..))
+import           Database.Selda.Types            (fromTableName, mkTableName,
+                                                  rawTableName)
+import           Database.Selda.Validation
 
 -- | Wrapper for user with 'migrateAll', enabling multiple migrations to be
 --   packed into the same list:
@@ -121,7 +123,7 @@ migrateInternal :: (MonadSelda m, MonadThrow m, Relational a, Relational b)
                 -> m ()
 migrateInternal t1 t2 upg = withBackend $ \b -> do
     validateTable t1
-    validateSchema t2
+    -- validateSchema t2
     createTableWithoutIndexes Fail t2'
     void . queryInto t2' $ select t1 >>= upg
     void . liftIO $ runStmt b (dropQuery (tableName t1)) []
